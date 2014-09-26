@@ -1,0 +1,481 @@
+<!-- primary template -->
+<script type="text/html" id='primaryTemplate'>
+    <nav class="top-row">
+        <a class="logo" href="/">
+            <img src="/assets/images/aWindow_logo.svg" alt="aWindowNYC logo" />
+        </a>
+
+        <ul class="top-nav-list">
+            <li class="top-nav-list-item shop">
+                <a href="/shop">shop</a>
+            </li>
+            <li class="top-nav-list-item page"><% if (currentType === 'meta' && currentTitleNormalized !== 'root' && currentTitleNormalized !== 'shop') { print(currentTitleNormalized.replace('-', '')); } %></li>
+            <li class="top-nav-list-item current-edition">
+                <a href="/edition/<%= currentEdition %>">edition<%= data.edition[currentEdition].title %></a>
+            </li>
+            <%
+                if (currentType === 'edition') { %>
+                    <li class="top-nav-list-item collaborators-dropdown">
+                        <a class="dropdown-trigger" href="javascript:void(0)">collaborators</a>
+                        <ul class="collaborators-list dropdown">
+                            <% _.each(currentPage.collaborators, function(value) { %>
+                                <li class="collaborators-list-item">
+                                    <a href="/collaborator/<%= value %>"><%= data.collaborator[value].title %></a>
+                                </li>
+                            <% }); %>
+                       </ul>
+                    </li>
+                <% } else if (currentType !== 'meta' || currentTitleNormalized === 'root') { %>
+                    <li class="top-nav-list-item where">
+                        <a href="/where">where<span class="visually-hidden"> is the window currently located?</span></a>
+                    </li>
+                <% }
+            %>
+        </ul>
+    </nav>
+
+    <main class="middle-row">
+        <% if (currentType === 'meta') {
+            switch (currentTitleNormalized) {
+                case 'root':
+                    print(aWindow.template.homepagePartial({
+                        data:           data,
+                        currentEdition: currentEdition
+                    }));
+                    break;
+                case 'editions':
+                    print(aWindow.template.metaListPartial({
+                        data:           data,
+                        metaList:       'edition',
+                        displayOrder:   data.meta[currentTitleNormalized].displayOrder
+                    }));
+                    break;
+                case 'collaborators':
+                    print(aWindow.template.metaListPartial({
+                        data:           data,
+                        metaList:       'collaborator',
+                        displayOrder:   data.meta[currentTitleNormalized].displayOrder
+                    }));
+                    break;
+                case 'shop':
+                    print(aWindow.template.metaListPartial({
+                        data:           data,
+                        metaList:       'item',
+                        displayOrder:   data.meta[currentTitleNormalized].displayOrder
+                    }));
+                    break;
+                case 'contact':
+                    print(aWindow.template.contactPartial({
+                        data:           data,
+                        currentPage:    currentPage,
+                        currentEdition: currentEdition,
+                        contactData:    contactData
+                    }));
+                    break;
+                case 'where':
+                    print(aWindow.template.fullWidthImagePartial({
+                        data:                   data,
+                        currentPage:            currentPage,
+                        currentType:            currentType,
+                        currentTitleNormalized: currentTitleNormalized,
+                        currentEdition:         currentEdition,
+                        fullWidthMedia:         data.edition[currentEdition].location.media,
+                        overlayPartial:         'whereSidebarPartial',
+                        attribution:            false
+                    }));
+                    break;
+                case 'about':
+                    print(aWindow.template.collaboratorAboutPartial({
+                        data:                   data,
+                        currentPage:            currentPage,
+                        currentType:            currentType,
+                        currentTitleNormalized: currentTitleNormalized,
+                        attribution:            currentPage.media.attribution
+                    }));
+                    break;
+                case 'terms':
+                    print(aWindow.template.termsPartial({
+                        data:           data,
+                        currentEdition: currentEdition
+                    }));
+                    break;
+            }
+        } else if (currentType === 'collaborator') {
+            print(aWindow.template.collaboratorAboutPartial({
+                data:                   data,
+                currentPage:            currentPage,
+                currentType:            currentType,
+                currentTitleNormalized: currentTitleNormalized,
+                attribution:            currentPage.media.attribution
+            }));
+        } else if (purchasePage) {
+            print(aWindow.template.fullWidthImagePartial({
+                data:                   data,
+                currentPage:            currentPage,
+                fullWidthMedia:         currentPage.purchasePageMedia.source,
+                attribution:            currentPage.purchasePageMedia.attribution,
+                currentEdition:         currentEdition,
+                overlayPartial:         'purchaseSidebarPartial',
+                currentType:            currentType,
+                currentTitleNormalized: currentTitleNormalized
+            }));
+        } else {
+            print(aWindow.template.itemEditionPartial({
+                data:                   data,
+                currentType:            currentType,
+                currentTitleNormalized: currentTitleNormalized,
+                currentPage:            currentPage,
+                attribution:            currentPage.media.attribution
+            }));
+        }%>
+    </main>
+
+    <footer class="bottom-row">
+        <nav class="footer-nav">
+            <ul>
+                <% if (_.size(data.edition) > 1) { %>
+                    <li class="footer-nav-item">
+                        <a href="/editions">editions</a>
+                    </li>
+                <% } %>
+                <li class="footer-nav-item">
+                    <a href="/collaborators">collaborators</a>
+                </li>
+                <li class="footer-nav-item">
+                    <a href="/shop">shop</a>
+                </li>
+                <li class="footer-nav-item">
+                    <a href="/about">about</a>
+                </li>
+                <li class="footer-nav-item">
+                    <a href="/contact">contact</a>
+                </li>
+                <li class="footer-nav-item">
+                    <a href="http://a-windownyc.tumblr.com/" target="_blank">blog</a>
+                </li>
+                <li class="footer-nav-item">
+                    <a href="/terms">terms</a>
+                </li>
+                <li class="footer-nav-item social-links">
+                    <ul>
+                        <li class="social-link-item">
+                            <a class="social-link instagram" href="http://instagram.com/awindownyc" target="_blank"><span class="visually-hidden">navigate to aWindow on Instagram</span></a>
+                        </li>
+                        <li class="social-link-item">
+                            <a class="social-link facebook" href="http://facebook.com/awindownyc" target="_blank"><span class="visually-hidden">navigate to aWindow on Facebook</span></a>
+                        </li>
+                        <li class="social-link-item">
+                            <a class="social-link twitter" href="http://twitter.com/awindownyc" target="_blank"><span class="visually-hidden">navigate to aWindow on Twitter</span></a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="footer-nav-item newsletter">
+                    <form class="newsletter-form" action="/contact" method="post" target="_blank">
+                        <input name="typeOfContact" type="hidden" value="Subscribe to Newsletter" />
+                        <label for="newsletterEmail">newsletter</label>
+                        <input id="newsletterEmail" name="newsletterEmail" type="email" placeholder="hi@example.com" required />
+                        <input type="submit" value="subscribe" />
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+</script>
+<!-- /primary template -->
+
+
+<!-- main row partials -->
+<script type="text/html" id='homepagePartial'>
+    <div class="homepage-container">
+        <figure id="parallax" class="parallax-container">
+            <div class="layer" data-depth="0.10">
+                <img src="/assets/images/editionone/homepage_parallax/base_by_brad.jpg">
+            </div>
+            <div class="layer image-layer skull" data-depth="0.20">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/skull.png">
+            </div>
+            <div class="layer image-layer ekleipsis" data-depth="0.28">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/eclipses.png">
+            </div>
+            <div class="layer image-layer double-tongue" data-depth="0.30">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/tongue.png">
+            </div>
+            <div class="layer image-layer conker" data-depth="0.38">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/conker.png">
+            </div>
+            <div class="layer image-layer square" data-depth="0.50">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/square.png">
+            </div>
+            <div class="layer image-layer core" data-depth="0.53">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/core.png">
+            </div>
+            <div class="layer image-layer t-shirt" data-depth="0.50">
+                <img class="image" src="/assets/images/editionone/homepage_parallax/t-shirt.png">
+            </div>
+            <a class="layer link-layer gallery" href="/item/gallery-edition-one" data-depth="0.10"><span class="visually-hidden">navigate to gallery info page</span></a>
+            <a class="layer link-layer skull" href="/item/skull" data-depth="0.20"><span class="visually-hidden">navigate to skull info page</span></a>
+            <a class="layer link-layer double-tongue" href="/item/double-tongue" data-depth="0.30"><span class="visually-hidden">navigate to double tongue info page</span></a>
+            <a class="layer link-layer t-shirt" href="/item/t-shirt" data-depth="0.53"><span class="visually-hidden">navigate to t-shirt info page</span></a>
+            <a class="layer link-layer ekleipsis" href="/item/ekleipsis" data-depth="0.28"><span class="visually-hidden">navigate to ekleipsis info page</span></a>
+            <a class="layer link-layer square" href="/item/square" data-depth="0.50"><span class="visually-hidden">navigate to square info page</span></a>
+            <a class="layer link-layer core" href="/item/core" data-depth="0.53"><span class="visually-hidden">navigate to core info page</span></a>
+            <a class="layer link-layer conker conker-1" href="/item/conker" data-depth="0.38"><span class="visually-hidden">navigate to conker info page</span></a>
+            <a class="layer link-layer conker conker-2" href="/item/conker" data-depth="0.38"><span class="visually-hidden">navigate to conker info page</span></a>
+        </figure>
+    </div>
+</script>
+
+<script type="text/html" id='fullWidthImagePartial'>
+    <div class="full-width-image-container" style="background-image: url(<%= fullWidthMedia %>);">
+        <div class="overlay-container">
+            <%
+                print(aWindow.template[overlayPartial]({
+                    data:                   data,
+                    currentPage:            currentPage,
+                    currentEdition:         currentEdition,
+                    currentType:            currentType,
+                    currentTitleNormalized: currentTitleNormalized
+                }));
+            %>
+        </div>
+        <% if (attribution) print(aWindow.template.attributionPartial({ attribution: attribution })); %>
+    </div>
+</script>
+
+<script type="text/html" id='itemEditionPartial'>
+    <div class="item-edition-container">
+        <section class="sidebar-text">
+            <p class="description"><%= currentPage.description %></p>
+
+            <% if (currentType === 'item' && !currentPage['sub-items'].length) { %>
+                <a class="purchase-page-link" href="/item/<%= currentTitleNormalized %>/purchase">order now</a>
+            <% } %>
+        </section>
+        <figure class="primary-media">
+            <% if (currentPage.media.type === 'video-embed') {
+                print(currentPage.media.source);
+            } else { %>
+                <a href="<%= currentPage.media.source %>" target="_blank">
+                    <img class="primary-image" src="<%= currentPage.media.source %>" alt="view larger image" />
+                </a>
+            <% } %>
+
+            <% if (attribution) print(aWindow.template.attributionPartial({ attribution: attribution })); %>
+        </figure>
+        <% if (currentType === 'item' && currentPage['sub-items'].length) {
+            // show sub-item list partial
+            print(aWindow.template.subItemDisplayPartial({
+                subItems:               data['sub-item'],
+                currentSubItems:        currentPage['sub-items'],
+                parentItemNormalized:   currentTitleNormalized
+            }));
+        } else if (currentPage.additionalMedia) { %>
+            <div class="additional-media-wrapper">
+                <section class="additional-media">
+                    <% _.each(currentPage.additionalMedia, function(value) { %>
+                        <a class="thumbnail-image" href="<%= value %>" style="background-image: url(<%= value %>);" target="_blank">
+                            <span class="visually-hidden">view larger image</span>
+                        </a>
+                    <% }); %>
+                </section>
+            </div>
+        <% } %>
+    </div>
+</script>
+
+<script type="text/html" id='subItemDisplayPartial'>
+    <%
+        // display main image and subsequent smaller carousel images that link to respective sub-item pages
+    %>
+    <div class="additional-media-wrapper">
+        <section class="additional-media">
+            <% _.each(currentSubItems, function(value) { %>
+                <a class="thumbnail-image sub-item" href="/item/<%= parentItemNormalized %>/<%= value %>/purchase" style="background-image: url(<%= subItems[value].media.source %>);">
+                    <span class="visually-hidden">go to purchase page</span>
+                </a>
+            <% }); %>
+        </section>
+    </div>
+</script>
+
+<script type="text/html" id='collaboratorAboutPartial'>
+    <div class="collaborator-about-container">
+        <figure class="primary-media">
+            <% if (currentPage.media.type === 'video-embed') {
+                print(currentPage.media.source);
+            } else { %>
+                <img class="primary-image" src="<%= currentPage.media.source %>" alt="<%= currentPage.title %>">
+            <% } %>
+
+            <% if (attribution) print(aWindow.template.attributionPartial({ attribution: attribution })); %>
+        </figure>
+        <section class="sidebar-text">
+            <p class="description"><%= currentPage.description %></p>
+
+            <%
+                // if current collaborator has items, show them
+            %>
+            <% if (currentType === 'collaborator' && currentPage.items.length) { %>
+                <ul class="items-list">
+                    <% _.each(currentPage.items, function(value) { %>
+                        <li class="items-list-item">
+                            <a href="/item/<%= value %>"><%= data.item[value].title %></a>
+                        </li>
+                    <% }); %>
+                </ul>
+            <% } %>
+        </section>
+    </div>
+</script>
+
+<script type="text/html" id='metaListPartial'>
+    <div class="meta-list-container">
+        <ul class="meta-list">
+            <% _.each(displayOrder, function(value) { %>
+                <li class="meta-list-item">
+                    <a
+                        class="meta-list-link <%= metaList %>"
+                        href="/<%= metaList %>/<%= value %>"
+                        <% if (metaList === 'item') { %>
+                            style="background-image: url(<%= data[metaList][value].purchasePageMedia.source %>);"
+                        <% } %>
+                    >
+                        <h3 class="meta-list-title"><%= data[metaList][value].title %></h3>
+                    </a>
+                </li>
+            <% }); %>
+       </ul>
+    </div>
+</script>
+
+<script type="text/html" id="contactPartial">
+    <div class="contact-container">
+        <aside class="meta-info-container">
+            <section class="meta-section">
+                <h2 class="section-header">awindow studio</h2>
+                <p>488 Morgan Ave<br>Brooklyn, NY 11222<br><a href="mailto:info@awindownyc.com">info@awindownyc.com</a></p>
+            </section>
+        </aside>
+        <form action="/contact" method="post" target="_blank">
+            <input name="typeOfContact" type="hidden" value="Contact Form Message" />
+            <div class="form-container">
+                <label for="contactName">
+                    Name*
+                    <input id="contactName" name="name" type="text" required autofocus />
+                </label>
+                <label for="contactEmail">
+                    Email*
+                    <input id="contactEmail" name="_replyto" type="email" required />
+                </label>
+                <label for="contactPhone">
+                    Phone
+                    <input id="contactPhone" name="phone" type="tel" />
+                </label>
+
+                <% if (contactData) { %>
+                    <label for="contactSubject">
+                        Subject
+                        <input id="contactSubject" name="subject" type="text" value="more info about <%= decodeURIComponent(contactData.title) %>" />
+                    </label>
+                <% } %>
+
+                <label for="contactMessage">
+                    Message*
+                    <textarea id="contactMessage" name="message" rows="10" required></textarea>
+                </label>
+                <label>
+                    Contact Me By
+                    <span class="radio-wrapper">
+                        <label for="preferEmail"><input id="preferEmail" name="contactPreference" type="radio" value="email" />Email</label>
+                        <label for="preferPhone"><input id="preferPhone" name="contactPreference" type="radio" value="phone" />Phone</label>
+                    </span>
+                </label>
+                <input type="submit" value="Send">
+            </div>
+        </form>
+    </div>
+</script>
+<!-- /main row partials -->
+
+
+<!-- where sidebar partials -->
+<script type="text/html" id='whereSidebarPartial'>
+    <h2 class="overlay-title">Where Are We Now</h2>
+    <p class="where-description"><%= data.edition[currentEdition].location.description %></p>
+    <% if (data.edition[currentEdition].location.address !== '') { %>
+        <a class="directions-link" href="https://maps.google.com/maps?daddr=<% print(data.edition[currentEdition].location.address.replace(/\s/g, '+')); %>" target="_blank">Get Directions</a>
+    <% } %>
+</script>
+<!-- /where sidebar partials -->
+
+
+<!-- purchase sidebar partials -->
+<script type="text/html" id='purchaseSidebarPartial'>
+    <h2 class="overlay-title"><%= currentPage.title %></h2>
+
+    <% if (currentPage.productionRun) { %>
+        <div class="production-run"><%= currentPage.productionRun %></div>
+    <% } %>
+
+    <div class="purchase-price"><%= currentPage.price %></div>
+
+    <% if (currentPage.purchaseDetails) { %>
+        <div class="purchase-details"><%= currentPage.purchaseDetails %></div>
+    <% } %>
+
+    <% if (currentPage.madeToOrder) { %>
+        <div class="made-to-order">made to order</div>
+    <% } %>
+
+    <% if (currentPage.timeToShip) { %>
+        <div class="time-to-ship">please allow <%= currentPage.timeToShip %></div>
+    <% } %>
+
+    <%
+        // gallery is a semi-protected word. if a title starts with "gallery" this denotes that the item offered is the entire edition gallery/display
+    %>
+    <% if (currentPage.galleryItem) { %>
+        <a href="/contact?title=<%= encodeURIComponent(currentPage.title) %>" class="more-info-link">request more info</a>
+    <% } else { %>
+        <a href="javascript:void(0)" class="order-link">order now</a>
+        <a href="/contact?title=<%= encodeURIComponent(currentPage.title) %>" class="more-info-link">request more info</a>
+        <a href="/item/gallery-edition-<%= currentPage.edition %>" class="acquire-entire-gallery">acquire entire gallery</a>
+    <% } %>
+</script>
+<!-- /purchase sidebar partials -->
+
+
+<!-- lightbox module -->
+<script type="text/html" id='lightboxModule'>
+    <div class="lightbox-overlay">
+        <figure class="lightbox-container">
+            <img class="lightbox-img" src="<%= imgSource %>" alt=""/>
+            <a class="lightbox-close" href="#"><span class="visually-hidden">close fullscreen image</span></a>
+        </figure>
+    </div>
+</script>
+<!-- /lightbox module -->
+
+<!-- modal module -->
+<script type="text/html" id='modalModule'>
+    <div class="modal-overlay" id="<%= modalID %>">
+        <figure class="modal-container">
+            <p class="modal-content"><%= modalContent %></p>
+
+            <% if (showCloseBtn) { %>
+                <a class="modal-close" href="javascript:void(0)"><span class="visually-hidden">close modal</span></a>
+            <% } %>
+        </figure>
+    </div>
+</script>
+<!-- /modal module -->
+
+<!-- media attribution partial -->
+<script type="text/html" id='attributionPartial'>
+    <% if (attribution && attribution.link) { %>
+        <a class="media-attribution" href="<%= attribution.link %>" target="_blank">media by <%= attribution.title %></a>
+    <% } else if (attribution && attribution.title) { %>
+        <span class="media-attribution">media by <%= attribution.title %></span>
+    <% } %>
+</script>
+<!-- /media attribution partial -->

@@ -1,0 +1,37 @@
+// meta list styles
+.meta-list-container {
+
+}
+
+.meta-list {
+  text-align: center;
+}
+
+.meta-list-item {
+  display: inline-block;
+  width: 45%; // 910px container - (20px gutter * 2) / 3 media blocks
+  margin-left: 0;
+  vertical-align: top;
+
+  &:nth-child(2n) { // every third media block starting with the 1st block
+    margin-left: 6%;
+  }
+
+  .meta-list-link {
+    display: block;
+    min-height: 60px;
+    padding: em(10);
+    border: 1px solid $color-border-light;
+
+    // styles specific to shop page
+    &.item {
+      height: 170px;
+      background-size: cover;
+      background-position: 0% 50%;
+    }
+  }
+}
+
+.meta-list-title {
+
+}

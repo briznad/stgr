@@ -1,0 +1,27 @@
+.full-width-image-container {
+  position: static;
+  min-height: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 40px;
+}
+
+.overlay-container {
+  position: static;
+  transform: none;
+  max-width: 100%;
+  padding: em(40);
+  background-color: rgba($color-white, 0.55);
+}
+
+.overlay-title {
+  font-size: 1em;
+  text-transform: uppercase;
+  margin-bottom: em(30);
+}
+
+.media-attribution {
+  left: 10px;
+  top: auto;
+  bottom: -40px;
+}

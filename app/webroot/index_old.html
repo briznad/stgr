@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Heard App</title>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="description" content="Let them be Heard!">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!--[if lt IE 9]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+        <link rel="stylesheet" media="screen,projection" href="assets/css/style.css" />
+
+    </head>
+    <body>
+        <main id="main"></main>
+
+        <footer class="bottom-row"></footer>
+
+        <script type="text/html" id='primaryTemplate'>
+            <h1 class="visually-hidden"><%= currentPageTitle %></h1>
+
+            <nav class="top-row">
+                <ul class="top-nav-list">
+                    <li class="top-nav-list-item page"><% if (currentType === 'meta' && currentTitleNormalized !== 'root') { print(currentTitleNormalized.replace('-', '')); } %></li>
+                    <li class="top-nav-list-item logo">
+                        <a href="/">
+                            <span class="logo-open">{</span>a window<span class="logo-close">]</span>
+                        </a>
+                    </li>
+                    <li class="top-nav-list-item current-edition">
+                        <a href="/edition/<%= data.settings.currentEdition %>">edition<%= data.edition[data.settings.currentEdition].title %></a>
+                    </li>
+                    <%
+                        if (currentType === 'edition') { %>
+                            <li class="collaborators">
+                                <a class="dropdown-trigger" href="javascript:void(0)">collaborators</a>
+                                <ul class="collaborators-list dropdown">
+                                    <% _.each(data.edition[currentTitleNormalized].collaborators, function(value, key) { %>
+                                        <li class="collaborators-list-item">
+                                            <a href="/collaborator/<%= value %>"><%= data.collaborator[value].title %></a>
+                                        </li>
+                                    <% }); %>
+                               </ul>
+                            </li>
+                        <% }
+                    %>
+                </ul>
+            </nav>
+
+            <div class="middle-row">
+                <% switch (currentTitleNormalized) {
+                    case 'root':
+                        print(aWindow.template.homepageDisplayPartial({
+                            data:           data,
+                            currentEdition: data.settings.currentEdition
+                        }));
+                        break;
+                    case 'editions':
+                        print(aWindow.template.metaListPartial({
+                            data:           data,
+                            metaList:       'edition',
+                            displayOrder:   data.meta[currentTitleNormalized].displayOrder
+                        }));
+                        break;
+                    case 'collaborators':
+                        print(aWindow.template.metaListPartial({
+                            data:           data,
+                            metaList:       'collaborator',
+                            displayOrder:   data.meta[currentTitleNormalized].displayOrder
+                        }));
+                        break;
+                    case 'contact':
+                        print(aWindow.template.contactPartial({
+                            data:           data,
+                            currentEdition: data.settings.currentEdition
+                        }));
+                        break;
+                    default: %>
+                        <figure class="media-container">
+                            <img src="<%= data[currentType][currentTitleNormalized].media %>" width="906" height="604" />
+                        </figure>
+                        <p class="description-text"><%= data[currentType][currentTitleNormalized].description %></p>
+                <% } %>
+            </div>
+        </script>
+
+        <script type="text/html" id='homepageDisplayPartial'>
+            <div class="homepage-container">
+                <ul class="window-display-list">
+                    <% _.each(data.edition[currentEdition].items, function(value) { %>
+                        <li class="window-display-list-item" style="top: <%= data.item[value].windowDisplay.position.top %>; left: <%= data.item[value].windowDisplay.position.left %>;"><a href="/item/<%= value %>"><%= data.item[value].title %></a></li>
+                    <% }); %>
+               </ul>
+            </div>
+        </script>
+
+        <script type="text/html" id='metaListPartial'>
+            <div class="meta-list-container">
+                <ul class="meta-list">
+                    <% _.each(displayOrder, function(value) { %>
+                        <li class="meta-list-item">
+                            <h3 class="meta-list-title">
+                                <a href="/<%= metaList %>/<%= value %>"><%= data[metaList][value].title %></a>
+                            </h3>
+                        </li>
+                    <% }); %>
+               </ul>
+            </div>
+        </script>
+
+        <script type="text/html" id='contactPartial'>
+            <div class="contact-container">
+                <aside class="meta-info-container">
+                    <section class="meta-section">
+                        <h2 class="section-header">Location</h2>
+                        <p><%= data.edition[currentEdition].location %></p>
+                    </section>
+                    <section class="meta-section">
+                        <h2 class="section-header">Hours</h2>
+                        <p><%= data.edition[currentEdition].hours %></p>
+                    </section>
+                    <section class="meta-section">
+                        <p>Email <a href="mailto:<%= data.edition[currentEdition].contact.email %>"><%= data.edition[currentEdition].contact.email %></a><br/>Or call us at <a href="tel:<% print(data.edition[currentEdition].contact.phone.replace(/[^\d|+]/g, '')); %>"><%= data.edition[currentEdition].contact.phone %></a></p>
+                    </section>
+                </aside>
+                <form action="/contact" method="post" target="_blank">
+                    <input id="contactType" name="contact[typeOfContact]" type="hidden" value="Contact Form Message" />
+                    <div class="form-container">
+                        <label for="contactName">
+                            Name*
+                            <input id="contactName" name="contact[name]" type="text" required autofocus />
+                        </label>
+                        <label for="contactEmail">
+                            Email*
+                            <input id="contactEmail" name="contact[email]" type="email" required />
+                        </label>
+                        <label for="contactPhone">
+                            Phone
+                            <input id="contactPhone" name="contact[phone]" type="tel" />
+                        </label>
+                        <label for="contactMessage">
+                            Message*
+                            <textarea id="contactMessage" name="contact[message]" rows="10" required></textarea>
+                        </label>
+                        <label>
+                            Contact Me By
+                            <span class="radio-wrapper">
+                                <label for="preferEmail"><input id="preferEmail" name="contact[contactPreference]" type="radio" value="email" />Email</label>
+                                <label for="preferPhone"><input id="preferPhone" name="contact[contactPreference]" type="radio" value="phone" />Phone</label>
+                            </span>
+                        </label>
+                        <input type="submit" value="Send">
+                    </div>
+                </form>
+            </div>
+        </script>
+
+        <!--[if lt IE 9]>
+            <p class="chromeframe" style="position: fixed; width: 100%; top: 0; margin: 0; padding: 15px; text-align: center; background-color: #555;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- FOR PROD
+        <script src="assets/js/min/cat.min.js"></script>
+         -->
+
+        <!-- FOR DEV -->
+        <!-- plugins -->
+        <script src="/assets/js/plugins/zepto.js"></script>
+        <script src="/assets/js/plugins/zepto.callbacks.js"></script>
+        <script src="/assets/js/plugins/zepto.deferred.js"></script>
+        <script src="/assets/js/plugins/underscore.js"></script>
+        <script src="/assets/js/plugins/davis.js"></script>
+
+        <!-- local -->
+        <script src="/assets/js/utilities.js"></script>
+        <script src="/assets/js/cache.js"></script>
+        <script src="/assets/js/template.js"></script>
+        <script src="/assets/js/modelBuildr.js"></script>
+        <script src="/assets/js/router.js"></script>
+        <script src="/assets/js/init.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+%icon {
+  &:before {
+    line-height: 1em;
+    font-family: 'fontello';
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    speak: none;
+  }
+}
+
+%icon-twitter {
+  &:before { content: '\e800'; } // ''
+}
+
+%icon-facebook {
+  &:before { content: '\e801'; } // ''
+}
+
+%icon-instagram {
+  &:before { content: '\e802'; } // ''
+}
+
+%icon-cancel {
+  &:before { content: '\e803'; } /* '' */
+}

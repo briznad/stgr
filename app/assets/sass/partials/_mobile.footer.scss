@@ -1,0 +1,64 @@
+// bottom row
+
+// .bottom-row {
+// 	font-size: em(11);
+// }
+
+.footer-nav-item {
+	display: block;
+	margin-left: 0;
+	margin-top: 1em;
+
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+.social-links {
+	padding: 0 1em;
+
+	ul {
+		float: right;
+	}
+}
+
+.social-link-item {
+	display: inline-block;
+	margin-top: 0;
+}
+
+// .social-link {
+// 	@extend %icon;
+// 	font-size: em(15, 11);
+
+// 	&:hover {
+// 		text-decoration: none;
+// 	}
+
+// 	@each $site in instagram, facebook, twitter {
+// 	  &.#{$site} {
+// 	    @extend %icon-#{$site};
+// 	  }
+// 	}
+// }
+
+.newsletter {
+	float: none;
+	clear: both;
+
+	label {
+		display: block;
+		margin-bottom: 0.4em;
+	}
+
+	[type="email"] {
+		min-width: em(188, 11);
+	}
+
+	// [type="submit"] {
+	// 	position: relative;
+	// 	top: -1px;
+	// }
+}
+
+// /bottom row

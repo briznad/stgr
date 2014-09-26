@@ -1,0 +1,99 @@
+// parallax styles
+.parallax-container {
+	.link-layer {
+		min-width: 50px;
+		min-height: 50px;
+
+		&.gallery {
+			width: 100%;
+			height: 100%;
+		}
+
+		&.skull {
+			top: 102px !important;
+			left: 218px !important;
+		}
+
+		&.double-tongue {
+			top: 50px !important;
+			left: 440px !important;
+			width: 90px;
+			height: 110px;
+		}
+
+		&.t-shirt {
+			top: 230px !important;
+			left: 50px !important;
+			width: 260px;
+			height: 260px;
+		}
+
+		&.ekleipsis {
+			top: 180px !important;
+			left: 350px !important;
+			width: 65px;
+			height: 75px;
+		}
+
+		&.square {
+			top: 155px !important;
+			left: 560px !important;
+			width: 235px;
+			height: 245px;
+		}
+
+		&.core {
+			top: 390px !important;
+			left: 770px !important;
+			height: 65px;
+		}
+
+		&.conker {
+
+		}
+
+		&.conker-1 {
+			top: 260px !important;
+			left: 346px !important;
+			width: 155px;
+			height: 70px;
+		}
+
+		&.conker-2 {
+			top: 200px !important;
+			left: 485px !important;
+			width: 87px;
+			height: 95px;
+		}
+	}
+
+	.image-layer .image {
+		transition: transform 200ms ease;
+	}
+
+	$scale-amount: 1.02;
+
+	// enhance the item image when hovering the respective link
+	// relies on corresponding js to add/remove hover class to container
+	&.skull-hover .image-layer.skull .image {
+		transform: scale($scale-amount);
+	}
+	&.double-tongue-hover .image-layer.double-tongue .image {
+		transform: scale($scale-amount);
+	}
+	&.t-shirt-hover .image-layer.t-shirt .image {
+		transform: scale($scale-amount);
+	}
+	&.ekleipsis-hover .image-layer.ekleipsis .image {
+		transform: scale($scale-amount);
+	}
+	&.square-hover .image-layer.square .image {
+		transform: scale($scale-amount);
+	}
+	&.core-hover .image-layer.core .image {
+		transform: scale($scale-amount);
+	}
+	&.conker-hover .image-layer.conker .image {
+		transform: scale($scale-amount);
+	}
+}

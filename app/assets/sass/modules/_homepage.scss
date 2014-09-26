@@ -1,0 +1,14 @@
+// homepage styles
+.homepage-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.layer {
+  position: absolute;
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}

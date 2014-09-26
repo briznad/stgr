@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>HeardApp | 404 | 301</title>
+
+        <meta charset="utf-8">
+        <meta name="description" content="This resource does not exist. Kindly return home.">
+
+        <script>
+            // the current page does not exist
+            // pass the user back to the root, but assign the current pathname as a hash, so we can test that route
+            location.replace('/#' + location.pathname.replace(/\/$/, ''));
+        </script>
+    </head>
+    <body></body>
+</html>

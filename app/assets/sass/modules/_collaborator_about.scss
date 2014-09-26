@@ -1,0 +1,29 @@
+// meta list styles
+.collaborator-about-container {
+  @extend .clearfix;
+
+  .primary-media {
+    float: left;
+    margin-right: 30px;
+    min-width: 300px;
+    max-width: 380px;
+  }
+
+  .sidebar-text {
+    max-height: 480px;
+  }
+
+  .collaborator-name,
+  .description {
+    display: inline;
+  }
+
+  .items-list {
+    margin-top: 1em;
+  }
+
+  .items-list-item {
+    display: list-item;
+    list-style: square inside none;
+  }
+}

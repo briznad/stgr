@@ -1,0 +1,51 @@
+.overlay-title {
+  margin: 0;
+}
+
+.production-run {
+
+}
+
+.purchase-price {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.purchase-details {
+  margin-bottom: 1em;
+}
+
+.made-to-order {
+
+}
+
+.time-to-ship {
+
+}
+
+.order-link,
+.more-info-link,
+.acquire-entire-gallery {
+  display: block;
+  margin-bottom: 0.25em;
+  font-size: 0.75em;
+  text-transform: uppercase;
+
+  &:before {
+    content: '+';
+  }
+}
+
+
+.order-link {
+  font-weight: bold;
+  margin-top: 1.25em;
+}
+
+.more-info-link {
+
+}
+
+.acquire-entire-gallery {
+
+}

@@ -1,0 +1,52 @@
+// bottom row
+
+.bottom-row {
+	font-size: em(11);
+}
+
+.footer-nav-item {
+	margin-left: 2.24%;
+
+	&:first-child {
+		margin-left: 0;
+	}
+}
+
+.social-links {
+	padding: 0 1em;
+}
+
+.social-link-item {
+	@extend .footer-nav-item;
+	margin-left: em(12, 11);
+}
+
+.social-link {
+	@extend %icon;
+	font-size: em(15, 11);
+
+	&:hover {
+		text-decoration: none;
+	}
+
+	@each $site in instagram, facebook, twitter {
+	  &.#{$site} {
+	    @extend %icon-#{$site};
+	  }
+	}
+}
+
+.newsletter {
+	float: right;
+
+	[type="email"] {
+		min-width: em(146, 11);
+	}
+
+	[type="submit"] {
+		position: relative;
+		top: -1px;
+	}
+}
+
+// /bottom row

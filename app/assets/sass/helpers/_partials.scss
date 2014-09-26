@@ -1,0 +1,64 @@
+/* partials */
+
+// visually hide elements for screen readers
+.visually-hidden {
+    position: absolute !important;
+    clip: rect(1px 1px 1px 1px);
+    clip: rect(1px,1px,1px,1px);
+    padding: 0 !important;
+    border: 0 !important;
+    height: 1px !important;
+    width: 1px !important;
+    overflow: hidden;
+}
+
+// visually hide text within elements for screen readers
+.visually-hidden-text {
+    text-indent: -10000px;
+}
+
+.inactive {
+    display: none !important;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+// clearfix
+.clearfix {
+    &:before,
+    &:after {
+        content: " ";
+        display: table;
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+.relative-container {
+    position: relative;
+}
+
+// button styles
+%button {
+    padding: 0.75em 1em;
+    border: 1px solid $color-border-dark;
+    text-decoration: none;
+    color: $button-color;
+    background-color: $button-background;
+
+    &:hover {
+        text-decoration: none;
+        color: $button-color-hover;
+        background-color: $button-background-hover;
+    }
+
+    &:active {
+        color: $button-color-active;
+        background-color: $button-background-active;
+    }
+}
+
+/* /partials */

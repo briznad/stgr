@@ -1,0 +1,35 @@
+/* settings */
+
+// font variables
+$font-base-size: 14px;
+
+$font-normal: 'apercuregular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$font-icon: 'fontello';
+
+// color variables
+$opacity: 0.5;
+
+$color-white: #fff;
+$color-black: #000;
+
+$color-text: #505050;
+
+$color-border-light: #858587;
+$color-border-dark: #000;
+
+$color-grey-background: #ddd;
+
+$button-color: $color-text;
+$button-background: transparent;
+$button-color-hover: $color-text;
+$button-background-hover: $color-grey-background;
+$button-color-active: $color-white;
+$button-background-active: $color-black;
+
+// positiong variables
+$golden-ratio: 61.803398875%;
+
+// breakpoints
+$breakpoint-desktop : 767px;
+
+/* /settings */

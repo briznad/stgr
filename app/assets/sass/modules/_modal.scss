@@ -1,0 +1,19 @@
+.modal-overlay {
+  @extend .lightbox-overlay;
+}
+
+.modal-container {
+  @extend .lightbox-container;
+
+  max-width: 280px;
+}
+
+.modal-content {
+  @extend .lightbox-img;
+
+  background-color: $color-white;
+}
+
+.modal-close {
+  @extend .lightbox-close;
+}

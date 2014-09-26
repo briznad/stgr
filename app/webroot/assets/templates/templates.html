@@ -1,0 +1,32 @@
+<!-- primary template -->
+<script type="text/html" id='primaryTemplate'>
+    <% _.each(data.servers, function(value, key) {
+        print(stgr.template.propertyPartial({
+            property:   key,
+            servers:    value
+        }));
+    }); %>
+</script>
+
+<script type="text/html" id='propertyPartial'>
+    <section class="property expanded">
+        <header class="property-header"><%= property %></header>
+        <div class="property-body">
+            <% _.each(servers, function(value, key) {
+                print(stgr.template.serverPartial({
+                    server: key,
+                    branch: value
+                }));
+            }); %>
+        </div>
+    </section>
+</script>
+
+<script type="text/html" id='serverPartial'>
+    <div class="server collapsed">
+        <header class="server-header"><%= server %>: <%= branch %></header>
+        <div class="server-body">
+            stuff
+        </div>
+    </div>
+</script>

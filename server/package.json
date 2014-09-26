@@ -1,0 +1,11 @@
+{
+  "name" : "stgrAPI",
+  "description" : "API server for stgr app",
+  "author" : "Brad Mallow <brad.mallow@gmail.com>",
+  "repository" : {
+    "type": "git",
+    "url": "git://github.com/briznadTMG/stgr.git"
+  },
+  "main" : "stgr.coffee",
+  "version" : "0.0.1"
+}

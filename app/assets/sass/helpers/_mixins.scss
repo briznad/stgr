@@ -1,0 +1,14 @@
+/* mixins */
+
+// parseInt function to strip units/return just numbers
+@function parseInt($n) {
+    @return $n / ($n * 0 + 1);
+}
+
+// em's mixin
+@function em($targetSize, $context: $font-base-size) {
+    $value: (parseInt($targetSize) / parseInt($context));
+    @return #{$value}em;
+}
+
+/* /mixins */

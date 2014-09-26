@@ -1,0 +1,49 @@
+/* imports */
+
+// plugins
+@import "plugins/normalize";
+
+// helpers
+@import "helpers/fonts";
+@import "helpers/settings";
+@import "helpers/icons";
+@import "helpers/mixins";
+@import "helpers/partials";
+@import "helpers/base_styles";
+
+// partials
+@import "partials/shared_styles";
+@import "partials/header";
+@import "partials/middle_row";
+@import "partials/footer";
+
+// modules
+@import "modules/homepage";
+@import "modules/full_width_image";
+@import "modules/purchase";
+@import "modules/collaborator_about";
+@import "modules/item_edition";
+@import "modules/meta_list";
+@import "modules/contact";
+@import "modules/terms";
+@import "modules/parallax";
+@import "modules/where";
+@import "modules/lightbox";
+@import "modules/modal";
+
+/* /imports */
+
+/* responsive media queries */
+
+@media only screen and (max-width: $breakpoint-desktop) {
+  // partials
+  @import "partials/mobile.shared_styles";
+  @import "partials/mobile.header";
+  @import "partials/mobile.middle_row";
+  @import "partials/mobile.footer";
+
+  // modules
+  @import "modules/mobile.item_edition";
+  @import "modules/mobile.full_width_image";
+  @import "modules/mobile.meta_list";
+}
