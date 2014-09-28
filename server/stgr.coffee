@@ -1,38 +1,44 @@
 console.log '\nstgr API server is warming up...\n'
 
 ###
- load general depencies / global vars
+load required modules
+###
+file        = require 'fs'
+_           = require 'underscore'
+SSH         = require 'ssh2'
+express     = require 'express'
+GitHub      = require 'octonode'
+githubAuth  = require './github_credentials'
+
+###
+load global vars
 ###
 settings =
   devMode: false
   httpPort: 7847
 
-file    = require 'fs'
-_       = require 'underscore'
-SSH     = require 'ssh2'
-express = require 'express'
-app     = do express
+app = do express
 
-queryInterval   = 1 # in minutes
+github = GitHub.client
+    username: githubAuth.username
+    password: githubAuth.password
+
+pinnacle = github.repo 'Thrillist/Pinnacle'
+
+queryInterval   = 10 # in minutes
 recentlyChanged = false
 serverResults   = {}
+serverData      = {}
 serverListCount = 0
-serverList      =
-  thrillist: [
-    'yolo.thrillist.com'
-    'mojo.thrillist.com'
-    'stage-coach.thrillist.com'
-    'beta.thrillist.com'
-  ]
-
-  thrillistmediagroup: [
-    'beta.thrillistmediagroup.com'
-  ]
-
-  supercompressor: [
-    'beta.supercompressor.com'
-    'duper.supercompressor.com'
-  ]
+serverList      = [
+  'yolo.thrillist.com'
+  'mojo.thrillist.com'
+  'stage-coach.thrillist.com'
+  'beta.thrillist.com'
+  'beta.thrillistmediagroup.com'
+  'beta.supercompressor.com'
+  'duper.supercompressor.com'
+]
 
 ###
 init
@@ -42,23 +48,27 @@ init = ->
   app.use express.bodyParser()
   app.use express.cookieParser()
 
+  # DEV
+  do queryGithub
+
   # init routes
-  do initRoutes
+  # do initRoutes
 
   # init server
-  do initServer
+  # do initServer
 
   # init query
-  do initQuery
+  # do initQuery
 
 ###
 load routes
 ###
 routes =
   'get' :
-    '/'     : 'root'
-    '/test' : 'test'
-    '/list' : 'listAll'
+    '/'             : 'root'
+    '/test'         : 'test'
+    '/list'         : 'list'
+    '/detailedList' : 'detailedList'
   # 'put' :
   #   '/update' : 'updateRequest'
   # 'post' :
@@ -100,9 +110,9 @@ routeHandlers =
     # res.header 'Access-Control-Allow-Origin', 'http://stgr.thrillist.com'
     res.header 'Access-Control-Allow-Origin', '*'
     res.json
-      recentlyChanged:  recentlyChanged
+      recentlyChanged : recentlyChanged
 
-  listAll: (req, res) ->
+  list: (req, res) ->
     console.log '\nOMG, a request!'
     console.info 'request made for:\n' + req.url
 
@@ -110,8 +120,19 @@ routeHandlers =
     # res.header 'Access-Control-Allow-Origin', 'http://stgr.thrillist.com'
     res.header 'Access-Control-Allow-Origin', '*'
     res.json
-      recentlyChanged:  recentlyChanged
-      results:          serverResults
+      recentlyChanged : recentlyChanged
+      data            : serverResults
+
+  detailedList: (req, res) ->
+    console.log '\nOMG, a request!'
+    console.info 'request made for:\n' + req.url
+
+    # respond!!
+    # res.header 'Access-Control-Allow-Origin', 'http://stgr.thrillist.com'
+    res.header 'Access-Control-Allow-Origin', '*'
+    res.json
+      recentlyChanged : recentlyChanged
+      data            : serverData
 
 ###
 init server
@@ -142,18 +163,9 @@ initQuery = ->
     do queryServers
   , 1000 * 60 * queryInterval
 
-  serverListCount = countServers serverList
-  console.log '\nserver count to be queried:\n' + serverListCount
+  serverListCount = serverList.length
 
   do queryServers
-
-countServers = (listOfServers) ->
-  count = 0
-
-  _.each listOfServers, (value, key) ->
-    count += _.keys(value).length
-
-  return count
 
 queryServers = ->
   console.log '\nquerying staging servers'
@@ -161,16 +173,12 @@ queryServers = ->
   newResults = {}
 
   callback = ->
-    if serverListCount is countServers newResults then compareResults newResults
+    if serverListCount is _.keys(newResults).length then compareResults newResults
 
-  _.each serverList, (value, key) ->
-    property = key
-    newResults[property] = {}
+  _.each serverList, (server) ->
+    queryServer newResults, server, callback
 
-    _.each value, (value, key) ->
-      queryServer newResults, property, value, callback
-
-queryServer = (newResults, property, server, callback) ->
+queryServer = (newResults, server, callback) ->
   # console.log '\nquerying server:\n' + server
 
   conn = new SSH()
@@ -187,7 +195,11 @@ queryServer = (newResults, property, server, callback) ->
         currentBranch = do output.pop
 
         console.log '\n' + server + ' responded:\n' + currentBranch
-        newResults[property][server] = currentBranch
+
+        newResults[server] =
+          name: server
+          branch:
+            name: currentBranch
 
         do callback
 
@@ -216,8 +228,61 @@ compareResults = (newResults) ->
   else
     console.log '\nnew branches!'
     recentlyChanged = true
+    lastResults = serverResults
     serverResults = newResults
+    checkDiff lastResults, serverResults
+
+    t = setTimeout ->
+      console.log '\n'
+      console.log serverResults
+    , 4000
 
   console.log '\nchecking again in ' + queryInterval + ' minute/s'
+
+checkDiff = (lastResults, serverResults) ->
+  # _.each serverResults, (serverData, serverName) ->
+  #   if !lastResults[serverName] or !lastResults[serverName].branch or lastResults[serverName].branch.name isnt serverData.branch.name
+  #     queryGithub serverName, serverData
+
+queryGithub = (serverName, serverData) ->
+  # pinnacle.milestones (err, data, headers) ->
+  #   if err
+  #     console.error err
+  #   else
+  #     console.log data
+
+  # pinnacle.branch serverData.branch.name, (err, data, headers) ->
+  #   if err
+  #     if err.statusCode is 404
+  #       serverResults[serverName] = _.extend serverResults[serverName],
+  #         open: false
+  #   else
+  #     console.log '\n'
+  #     console.log data
+
+  #     _.extend serverResults[serverName],
+  #         open: true
+  #         branch:
+  #           name: data.name
+  #           link: data._links.html
+  #         author:
+  #           name: data.commit.author.login
+  #           link: data.commit.author.html_url
+  #           pic: data.commit.author.avatar_url
+  #         last_commit:
+  #           date: data.commit.commit.author.date
+  #           message: data.commit.commit.message
+
+
+  pullRequest = github.pr 'Thrillist/Pinnacle', 1848
+
+  pullRequest.info (err, data, headers) ->
+    if err
+      console.error err
+    else
+      console.log data.merged
+
+  # pr merged = data.merged
+  # pr branch = data.head.ref
 
 do init
