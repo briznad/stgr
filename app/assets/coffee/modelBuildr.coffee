@@ -9,7 +9,7 @@ stgr.modelBuildr = do ->
   getData = (callback) ->
     # requesting data from API
     request = $.ajax
-      url:    'http://stgr.thrillist.com:7847/list'
+      url:    'http://stgr.thrillist.com:7847/detailedList'
 
     # here's the data
     request.done (data) ->

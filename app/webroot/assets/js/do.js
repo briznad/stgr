@@ -12249,7 +12249,7 @@ stgr.modelBuildr = (function() {
   getData = function(callback) {
     var request;
     request = $.ajax({
-      url: 'http://stgr.thrillist.com:7847/list'
+      url: 'http://stgr.thrillist.com:7847/detailedList'
     });
     request.done(function(data) {
       return createCleanModel(data, callback);
