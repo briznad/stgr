@@ -9,25 +9,34 @@ stgr.modelBuildr = do ->
   getData = (callback) ->
     # requesting data from API
     request = $.ajax
-      url:    'http://stgr.thrillist.com:7847/detailedList'
+      url:    'http://stgr.thrillist.com:7847/list?verbose=true'
 
     # here's the data
     request.done (data) ->
-      createCleanModel data, callback
+      stgr.model =
+        settings    :
+          lastChange  : data.lastChange
+        servers     : data.data
+        properties  : _collateProperties data.data
+
+      do callback
 
     # uh-oh, something went wrong
     request.fail (data) ->
       stgr.model =
-        settings: {}
+        settings    : {}
+        servers     : {}
+        properties  : {}
 
       do callback
 
-  createCleanModel = (data, callback) ->
-    # add model object to stgr
-    stgr.model =
-      settings: {}
-      servers: data.results
+  _collateProperties = (servers) ->
+    propertyObj = {}
 
-    do callback
+    _.each servers, (serverData, server) ->
+      propertyObj[serverData.property] = propertyObj[serverData.property] or []
+      propertyObj[serverData.property].push server
+
+    propertyObj
 
   init: init

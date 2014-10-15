@@ -4,7 +4,7 @@ stgr = stgr || {};
 
 stgr.updateView = (function() {
   'use strict';
-  var beforeUpdate, trackGA, update, _computePageTitle, _removeBodyClasses, _updateBodyClasses, _updateCurrentPage;
+  var beforeUpdate, trackGA, update, _computePageTitle, _registerEventListeners, _removeBodyClasses, _updateBodyClasses, _updateCurrentPage;
   beforeUpdate = function(request) {};
   update = function(type) {
     var currentPage;
@@ -13,11 +13,12 @@ stgr.updateView = (function() {
     _updateBodyClasses('addClass', [type]);
     _updateCurrentPage(type);
     stgr.cache.$title.add(stgr.cache.$h1).text(_computePageTitle(type));
-    return stgr.cache.$dynamicContainer.html(stgr.template.primaryTemplate({
+    stgr.cache.$dynamicContainer.html(stgr.template.primaryTemplate({
       data: stgr.model,
       currentType: type,
       currentPage: currentPage
     }));
+    return _registerEventListeners();
   };
   trackGA = function(req) {
     return _gaq.push(['_trackPageview', req]);
@@ -37,6 +38,14 @@ stgr.updateView = (function() {
   };
   _computePageTitle = function(type) {
     return 'stgr';
+  };
+  _registerEventListeners = function() {
+    return $('.accordian-unit').on('click', function(e) {
+      e.stopPropagation();
+      if (!$(e.target).is('a')) {
+        return $(this).toggleClass('expanded');
+      }
+    });
   };
   return {
     beforeUpdate: beforeUpdate,

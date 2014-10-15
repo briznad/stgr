@@ -30,6 +30,8 @@ stgr.updateView = do ->
       currentType:            type
       currentPage:            currentPage
 
+    do _registerEventListeners
+
   # fire GA event for each page load
   trackGA = (req) ->
     _gaq.push [
@@ -53,6 +55,12 @@ stgr.updateView = do ->
 
   _computePageTitle = (type) ->
     'stgr'
+
+  _registerEventListeners = ->
+    $('.accordian-unit').on 'click', (e) ->
+      do e.stopPropagation
+
+      $(this).toggleClass('expanded') unless $(e.target).is('a')
 
   beforeUpdate: beforeUpdate
   update:       update

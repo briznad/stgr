@@ -1,0 +1,35 @@
+// accordian styles
+
+.accordian-unit {
+	display: block;
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+	border: 1px solid #ccc;
+	cursor: pointer;
+
+	&:after {
+		content: '\25BF';
+		position: absolute;
+		right: 1em;
+		top: 0.5em;
+		font-size: 2em;
+		transform: rotate(180deg);
+
+		transition: transform 250ms ease;
+	}
+
+	&.expanded {
+		> .accordian-unit-body {
+			display: block;
+		}
+
+		&:after {
+			transform: rotate(0deg);
+		}
+	}
+}
+
+.accordian-unit-body {
+	display: none;
+}

@@ -1,32 +1,135 @@
 <!-- primary template -->
 <script type="text/html" id='primaryTemplate'>
-    <% _.each(data.servers, function(value, key) {
-        print(stgr.template.propertyPartial({
-            property:   key,
-            servers:    value
-        }));
+  <ul class="property-list">
+    <% _.each(data.properties, function(value, key) {
+      print(stgr.template.propertyPartial({
+        data        : data,
+        property    : key,
+        servers     : value
+      }));
     }); %>
+  </ul>
 </script>
 
 <script type="text/html" id='propertyPartial'>
-    <section class="property expanded">
-        <header class="property-header"><%= property %></header>
-        <div class="property-body">
-            <% _.each(servers, function(value, key) {
-                print(stgr.template.serverPartial({
-                    server: key,
-                    branch: value
-                }));
-            }); %>
-        </div>
-    </section>
+  <li class="property-list-item accordian-unit expanded">
+    <header class="property-header"><%= property %></header>
+    <ul class="server-list accordian-unit-body">
+      <% _.each(servers, function(value, key) {
+        print(stgr.template.serverPartial({
+          server      : value,
+          branch      : data.servers[value].branch.name,
+          serverData  : data.servers[value]
+        }));
+      }); %>
+    </ul>
+  </li>
 </script>
 
 <script type="text/html" id='serverPartial'>
-    <div class="server collapsed">
-        <header class="server-header"><%= server %>: <%= branch %></header>
-        <div class="server-body">
-            stuff
-        </div>
-    </div>
+  <li class="server-list-item accordian-unit <% if (serverData.pull) {
+    print(serverData.pull.open ? 'open' : 'closed');
+  } else {
+    print(serverData.branch.open ? 'open' : 'closed');
+  } %>">
+    <header class="server-header"><span class="server-name"><%= server %></span><a class="branch-link" href="<%= serverData.branch.link %>"><%= branch %></a></header>
+
+    <ul class="server-info-list accordian-unit-body">
+      <% if (serverData.author) { %>
+        <li class="server-info-list-item author">
+          <span class="term">Author:</span>
+          <a class="definition author-link" href="<%= serverData.author.link %>" style="background-image: url(<%= serverData.author.pic %>);"><%= serverData.author.name %></a>
+        </li>
+      <% } %>
+
+      <% if (serverData.pull) { %>
+        <li class="server-info-list-item pull-request">
+          <span class="term">Pull Request:</span>
+          <a class="definition pull-request-link <% print(serverData.pull.open ? 'open' : 'closed'); if (serverData.pull.merged) print(' merged'); %>" href="<%= serverData.pull.link %>"><%= serverData.pull.name %></a>
+        </li>
+      <% } %>
+
+      <% if (serverData.pull && serverData.pull.labels.length) { %>
+        <li class="server-info-list-item labels">
+          <span class="term">Labels:</span>
+          <ul class="definition label-list">
+            <% _.each(serverData.pull.labels, function(label) { %>
+              <li class="label-list-item"><a class="label-link" href="<%= label.link %>" style="background-color: <%= label.color %>;"><%=  label.name %></a></li>
+            <% }); %>
+          </ul>
+        </li>
+      <% } %>
+
+      <% if (serverData.last_commit) { %>
+        <li class="server-info-list-item last-commit">
+          <span class="term">Last Commit:</span>
+          <span class="definition">
+            <span class="last-commit-time"><%= new Date(serverData.last_commit.date).toLocaleString() %></span>
+            <span class="last-commit-msg"><%= serverData.last_commit.message %></span>
+          </span>
+        </li>
+      <% } %>
+
+      <% if (serverData.milestone) { %>
+        <li class="server-info-list-item milestone <% print(serverData.milestone.open ? 'open' : 'closed'); %>">
+          <span class="term">Milestone:</span>
+          <ul class="definition milestone-info-list">
+            <li class="milestone-info-list-item open-issues">
+              <header class="term">Open Issues:</header>
+              <span class="definition"><%= serverData.milestone.open_issues %></span>
+            </li>
+
+            <li class="milestone-info-list-item closed-issues">
+              <header class="term">Closed Issues:</header>
+              <span class="definition"><%= serverData.milestone.closed_issues %></span>
+            </li>
+
+            <li class="milestone-info-list-item issues accordian-unit">
+              <header class="term">Issues:</header>
+              <ul class="definition milestone-issue-list accordian-unit-body">
+                <% _.each(serverData.milestone.issues, function(issue) {
+                  print(stgr.template.milestoneIssuePartial({
+                    branch    : issue.branch.name,
+                    issueData : issue
+                  }));
+                }); %>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      <% } %>
+    </ul>
+  </li>
+</script>
+
+<script type="text/html" id='milestoneIssuePartial'>
+  <li class="milestone-issue-list-item <% print(issueData.pull.open ? 'open' : 'closed'); %>">
+    <header class="milestone-issue-header"><a class="milestone-issue-link" href="<%= issueData.branch.link %>"><%= branch %></a></header>
+    <ul class="milestone-issue-info-list">
+      <% if (issueData.author) { %>
+        <li class="milestone-issue-info-list-item author">
+          <span class="term">Author:</span>
+          <a class="definition author-link" href="<%= issueData.author.link %>" style="background-image: url(<%= issueData.author.pic %>);"><%= issueData.author.name %></a>
+        </li>
+      <% } %>
+
+      <% if (issueData.pull) { %>
+        <li class="milestone-issue-info-list-item pull-request">
+          <span class="term">Pull Request:</span>
+          <a class="definition pull-request-link <% print(issueData.pull.open ? 'open' : 'closed'); if (issueData.pull.merged) print(' merged'); %>" href="<%= issueData.pull.link %>"><%= issueData.pull.name %></a>
+        </li>
+      <% } %>
+
+      <% if (issueData.labels) { %>
+        <li class="milestone-issue-info-list-item labels">
+          <span class="term">Labels:</span>
+          <ul class="definition label-list">
+            <% _.each(issueData.labels, function(label) { %>
+              <li class="label-list-item"><a class="label-link" href="<%= label.link %>" style="background-color: <%= label.color %>;"><%=  label.name %></a></li>
+            <% }); %>
+          </ul>
+        </li>
+      <% } %>
+    </ul>
+  </li>
 </script>
