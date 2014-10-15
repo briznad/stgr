@@ -14,7 +14,7 @@ githubAuth  = require './github_credentials'
 load global vars
 ###
 settings =
-  devMode: true
+  devMode: false
   httpPort: 7847
 
 app = do express
@@ -26,19 +26,28 @@ github = GitHub.client
 githubRepo  = 'Thrillist/Pinnacle'
 pinnacle    = github.repo githubRepo
 
-queryInterval     = 10 # in minutes
-recentlyChanged   = false
-serverResults     = {}
-serverData        = {}
-serverList        = [
-  'yolo.thrillist.com'
-  'mojo.thrillist.com'
-  'stage-coach.thrillist.com'
-  'beta.thrillist.com'
-  'beta.thrillistmediagroup.com'
-  'beta.supercompressor.com'
-  'duper.supercompressor.com'
+queryIntervalInMinutes = 10
+queryInterval = 1000 * 60 * queryIntervalInMinutes
+serverResults = {}
+lastChange    = 0
+serverData    = {}
+serverList    = [
+  'stage01.thrillist.com'
+  'stage02.thrillist.com'
+  'stage03.thrillist.com'
+  'stage04.thrillist.com'
+  'stage01.supercompressor.com'
+  'stage02.supercompressor.com'
 ]
+
+###
+helper utilities
+###
+devLog = (msg) ->
+  console.log msg
+
+printLineBreak = ->
+  console.log '\n'
 
 ###
 init
@@ -85,6 +94,7 @@ routes =
   'get' :
     '/'             : 'root'
     '/test'         : 'test'
+    '/lastChange'   : 'lastChange'
     '/list'         : 'list'
 
   # 'put' :
@@ -120,7 +130,7 @@ routeHandlers =
     res.header 'Access-Control-Allow-Origin', '*'
     res.json stgrSays: 'serving test!'
 
-  recentlyChanged: (req, res) ->
+  lastChange: (req, res) ->
     console.log '\nOMG, a request!'
     console.info 'request made for:\n' + req.url
 
@@ -128,23 +138,22 @@ routeHandlers =
     # res.header 'Access-Control-Allow-Origin', 'http://stgr.thrillist.com'
     res.header 'Access-Control-Allow-Origin', '*'
     res.json
-      recentlyChanged : recentlyChanged
+      lastChange              : lastChange
+      queryIntervalInMinutes  : queryIntervalInMinutes
 
   list: (req, res) ->
     console.log '\nOMG, a request!'
     console.info 'request made for:\n' + req.url
 
-    res.header 'Access-Control-Allow-Origin', '*'
+    responseObj =
+      lastChange              : lastChange
+      queryIntervalInMinutes  : queryIntervalInMinutes
 
     # if verbose query param is set, send detailed list
-    unless /^$|true/.test req.query.verbose
-      res.json
-        recentlyChanged : recentlyChanged
-        data            : serverResults
-    else
-      res.json
-        recentlyChanged : recentlyChanged
-        data            : serverData
+    responseObj.data =  unless /^$|true/.test req.query.verbose then serverResults else serverData
+
+    res.header 'Access-Control-Allow-Origin', '*'
+    res.json responseObj
 
 
 ###
@@ -153,65 +162,104 @@ init query
 initQuery = ->
   t = setInterval ->
     do queryServers
-  , 1000 * 60 * queryInterval
+  , queryInterval
 
   do queryServers
 
+###
+iterate through the staging servers and hand off to be checked
+###
 queryServers = ->
   console.log '\nquerying staging servers'
 
   newResults = {}
+  serverCount = serverList.length
 
   _.each serverList, (server) ->
     queryServer server, (currentBranch) ->
-      newResults[server] = currentBranch
+      if currentBranch
+        newResults[server] = currentBranch
+      else
+        serverCount--;
 
-      if _.keys(newResults).length is serverList.length
-        console.log '\n'
-        console.log newResults
+      if _.keys(newResults).length is serverCount
+        do printLineBreak
+        devLog newResults
 
         compareResults newResults
 
+###
+ask each staging server what branch they're running
+###
 queryServer = (server, callback = ->) ->
   # console.log '\nquerying server:\n' + server
+  maxAttempts   = 10
+  connAttempts  = 0
 
-  conn = new SSH()
+  # test for forward or backward slashes, aka things that shouldn't be in a branch
+  # if found, rerun branch check
+  validateResponse = (response) ->
+    response = if response.length then response.pop().split('Pinnaclebranch:')[1].split('Contrabranch:')[0] else 'logout'
 
-  conn.on 'ready', ->
-    conn.shell 'echo "test"', (err, stream) ->
-      throw err if err
+    unless /\\|\/|logout|HEAD/.test response
+      callback response
+    else if connAttempts >= maxAttempts
+      callback false
+    else
+      do printLineBreak
+      console.info 'uh-oh, SSH branch check ' + connAttempts + ' of ' + maxAttempts + ' for server ' + server + ' returned bad data\ntrying again'
 
-      output = []
+      do doQueryServer
 
-      stream.stderr.on 'data', (data) ->
-        console.error 'STDERR: ' + data
+  doQueryServer = ->
+    connAttempts++;
 
-      stream.on 'data', (data) ->
-        data = data.toString('utf8').replace /\s/g, ''
+    conn = new SSH()
 
-        # remove
-        return false if data.length < 2 or /^\[/.test data
+    conn.on 'ready', ->
+      conn.shell 'echo "test"', (err, stream) ->
+        throw err if err
 
-        # if the following command gets lumped in with the current line's output, cut it out
-        data = data.split(/\[/)[0] if /\[/.test data
+        output = []
 
-        output.push data
+        stream.stderr.on 'data', (data) ->
+          console.error 'STDERR: ' + data
 
-      stream.on 'close', ->
-        do conn.end
+        stream.on 'data', (data) ->
+          data = data.toString('utf8').replace /\s/g, ''
 
-        # console.log '\n' + server + ' responded:\n' + currentBranch
+          # remove
+          return false if data.length < 2 or /^\[|Nosuchfileordirectory/.test data
 
-        callback do output.pop
+          # if the following command gets lumped in with the current line's output, cut it out
+          data = data.split(/\[/)[0] if /\[/.test data
 
-      stream.end 'cd $(cat /etc/httpd/conf.d/pinnacle.conf | grep -m 1 DocumentRoot | sed s/DocumentRoot// | sed s/\\"//g)\ngit rev-parse --abbrev-ref HEAD\nexit\n'
+          output.push data if /Pinnaclebranch/.test data
 
-  conn.connect
-    host: server
-    port: 22
-    username: 'ec2-user'
-    privateKey: file.readFileSync '/Users/bradmallow/Documents/keys/dops-dev.pem'
+        stream.on 'close', ->
+          do conn.end
 
+          # do printLineBreak
+          # devLog server + ' responded:'
+          # do printLineBreak
+          # devLog currentBranch
+
+          validateResponse output
+
+        stream.end 'cat /tmp/' + server.split('.')[1].toUpperCase() + '_CURRENT_BRANCHES\nexit\n'
+
+    conn.connect
+      host: server
+      port: 22
+      username: 'ec2-user'
+      privateKey: file.readFileSync '/Users/bradmallow/Documents/keys/dops-dev.pem'
+
+  # initial server query
+  do doQueryServer
+
+###
+check to see if any servers have changed
+###
 compareResults = (newResults) ->
   console.log '\ncomparing results'
 
@@ -224,8 +272,8 @@ compareResults = (newResults) ->
   if changedCount
     console.log '\nnew branches!'
 
-    recentlyChanged = true
-    serverResults   = newResults
+    lastChange    = Date.now()
+    serverResults = newResults
 
     fetchMilestones (activeMilestones) ->
       addGithubData changedServers, changedCount, activeMilestones
@@ -233,47 +281,67 @@ compareResults = (newResults) ->
   else
     console.log '\nno change'
 
-    recentlyChanged = false
+  console.info '\nchecking again in ' + queryIntervalInMinutes + ' minute/s'
 
-  console.log '\nchecking again in ' + queryInterval + ' minute/s'
-
+###
+fetch all milestones from Github
+###
 fetchMilestones = (callback = ->) ->
+  activeMilestones = {}
+
   pinnacle.milestones
     page      : 1
     per_page  : 100
     state     : 'all'
     sort      : 'completeness'
   , (err, data, headers) ->
-    if data
-      # console.log '\n'
-      # console.log data
-
-      activeMilestones = {}
+    unless err
+      # do printLineBreak
+      # devLog data
 
       _.each data, (milestone) ->
         if _.invert(serverResults)[milestone.title]
           activeMilestones[milestone.title] = milestone.number
 
-    else
-      console.log '\n'
-      console.error 'error retrieving list of milestones'
+    callback activeMilestones
 
-    callback activeMilestones or {}
-
+###
+iterate through each changed server and pass it off to be Github query function
+when done add this info to the serverData object
+###
 addGithubData = (changedServers, changedCount, activeMilestones) ->
-  newServerData = {}
+  changedServersData = {}
 
   _.each changedServers, (branch, server) ->
-    queryGithub newServerData, server, branch, activeMilestones, ->
-      if _.keys(newServerData).length is changedCount
+    queryGithub server, branch, activeMilestones, (server, verboseData) ->
+      changedServersData[server] = verboseData
+
+      if _.keys(changedServersData).length is changedCount
         console.log '\nGithub querying complete!'
 
-        serverData = _.extend serverData, newServerData
+        serverData = _.extend serverData, changedServersData
 
-        console.log '\n'
-        console.log serverData
+        # ALL DONE
+        # do printLineBreak
+        # devLog changedServersData
+        # devLog serverData
 
-queryGithub = (newServerData, server, branch, activeMilestones, callback = ->) ->
+###
+handle the various Github queries and fire callback when all have come back
+###
+queryGithub = (server, branch, activeMilestones, callback = ->) ->
+  verboseData =
+    server      : server
+    property    : server.split('.')[1]
+    last_commit : false
+    milestone   : false
+    author      : false
+    pull        : false
+    branch      :
+      name        : branch
+      link        : 'https://github.com/Thrillist/Pinnacle/tree/' + branch
+      open        : false
+
   # set flags to hackily get around async calls
   complete =
     branch    : false
@@ -284,138 +352,195 @@ queryGithub = (newServerData, server, branch, activeMilestones, callback = ->) -
   callbackCheck = (type) ->
     complete[type] = true
 
-    do callback if complete.branch and complete.pull and complete.labels and complete.milestone
+    if complete.branch and complete.pull and complete.labels and complete.milestone then callback server, verboseData
 
-  newServerData[server] =
-    server    : server
-    property  : server.split('.')[1]
-    branch    :
-      name      : branch
-
-  queryBranch newServerData, server, branch, ->
+  queryBranch branch, (queryBranchData = {}) ->
+    verboseData = _.extend verboseData, queryBranchData
     callbackCheck 'branch'
 
-  queryPull newServerData, server, branch, ->
+  queryPullByBranch branch, verboseData.author, (queryPullData = {}) ->
+    verboseData = _.extend verboseData, queryPullData
     callbackCheck 'pull'
 
-    if newServerData[server].pull.number
-      queryLabels newServerData, server, newServerData[server].pull.number, ->
+    if verboseData.pull and verboseData.pull.number
+      queryLabels verboseData.pull.number, (queryLabelsData = []) ->
+        verboseData.pull.labels = queryLabelsData
         callbackCheck 'labels'
 
-    else
-      callbackCheck 'labels'
+    else callbackCheck 'labels'
 
-  queryMilestone newServerData, server, branch, activeMilestones, ->
-    callbackCheck 'milestone'
+  # query for milestone
+  if activeMilestones[branch]
+    queryMilestone activeMilestones[branch], (queryMilestoneData = {}) ->
+      verboseData.milestone = queryMilestoneData
+      callbackCheck 'milestone'
 
-queryBranch = (newServerData, server, branch, callback = ->) ->
+  else callbackCheck 'milestone'
+
+###
+query Github for branch info
+###
+queryBranch = (branch, callback = ->) ->
+  queryBranchData = {}
+
   pinnacle.branch branch, (err, data, headers) ->
-    if err
-      if err.statusCode is 404
-        newServerData[server].branch = _.extend newServerData[server].branch or {},
-          name: branch
-          open: false
+    unless err
+      # do printLineBreak
+      # devLog data
 
-      do callback
-
-    else
-      # console.log '\n'
-      # console.log data
-
-      newServerData[server].branch = _.extend newServerData[server].branch or {},
+      queryBranchData.branch =
         name: data.name
         link: data._links.html
         open: true
 
-      newServerData[server].last_commit = _.extend newServerData[server].last_commit or {},
+      queryBranchData.last_commit =
         date: data.commit.commit.author.date
         message: data.commit.commit.message
 
-      newServerData[server].author = _.extend newServerData[server].author or {},
+      queryBranchData.author =
         name: data.commit.author.login
         link: data.commit.author.html_url
         pic: data.commit.author.avatar_url
 
-      do callback
+    callback queryBranchData
 
-queryPull = (newServerData, server, branch, callback = ->) ->
+###
+query Github for pull request info by specifying the branch name
+###
+queryPullByBranch = (branch, currentAuthor, callback = ->) ->
+  queryPullData = {}
+
   pinnacle.prs
     page      : 1
-    per_page  : 100
+    per_page  : 1
     head      : 'Thrillist:' + branch
     state     : 'all'
   , (err, data, headers) ->
     if data and data.length
       data = data[0]
 
-      # console.log '\n'
-      # console.log data
+      # do printLineBreak
+      # devLog data
 
-      newServerData[server].branch = _.extend newServerData[server].branch or {},
-        name : data.head.ref
-        link : 'https://github.com/Thrillist/Pinnacle/tree/' + data.head.ref
-
-      newServerData[server].pull = _.extend newServerData[server].pull or {},
+      queryPullData.pull =
+        number  : data.number
         open    : if data.state is 'open' then true else false
         merged  : if data.merged_at then true else false
         name    : data.title
         link    : data._links.html.href
 
-      newServerData[server].author = _.extend newServerData[server].author or {},
+      queryPullData.author = _.extend
         name  : data[if data.assignee then 'assignee' else 'user'].login
         link  : data[if data.assignee then 'assignee' else 'user'].html_url
         pic   : data[if data.assignee then 'assignee' else 'user'].avatar_url
+      , currentAuthor or {} # extend in case branchQuery has already come back with richer data
 
-    else
-      newServerData[server].pull = false
+      queryPullData.labels = []
 
-    do callback
+    callback queryPullData
 
-queryLabels = (newServerData, server, number, callback = ->) ->
+###
+query Github for label info
+###
+queryLabels = (number, callback = ->) ->
+  queryLabelsData = []
+
   # query for a specific pull request's labels
   issue = github.issue githubRepo, number
 
   issue.info (err, data, headers) ->
-    if err
-      console.error err
-
-      newServerData[server].pull.labels = false
-
-    else if data
-      # console.log '\n'
-      # console.log data
-
-      newServerData[server].pull.labels = []
+    unless err
+      # do printLineBreak
+      # devLog data
 
       _.each data.labels, (label) ->
-        newServerData[server].pull.labels.push
+        queryLabelsData.push
           link  : label.url.replace('api.github.com/repos', 'github.com').replace('+', '%20')
           color : '#' + label.color
           name  : label.name
 
-    do callback
+    callback queryLabelsData
 
-queryMilestone = (newServerData, server, branch, activeMilestones, callback = ->) ->
-  if activeMilestones[branch]
-    pinnacle.issues
-      page      : 1
-      per_page  : 100
-      milestone : activeMilestones[branch]
-      state     : 'all'
-    , (err, data, headers) ->
-      if data
-        # console.log '\n'
-        # console.log data[0]
+###
+query Github for milestone info
+###
+queryMilestone = (number, callback = ->) ->
+  queryMilestoneData = {}
 
-      else
-        newServerData[server].milestone = false
+  pinnacle.issues
+    page      : 1
+    per_page  : 100
+    milestone : number
+    state     : 'all'
+  , (err, data, headers) ->
+    unless err
+      # do printLineBreak
+      # devLog data[0]
 
-      do callback
+      queryMilestoneData =
+        open          : if data[0].milestone.state is 'open' then true else false
+        open_issues   : data[0].milestone.open_issues
+        closed_issues : data[0].milestone.closed_issues
 
-  else
-    newServerData[server].milestone = false
+      issues = []
 
-    do callback
+      _.each data, (issue) ->
+        issueLabels = []
+
+        _.each issue.labels, (label) ->
+          issueLabels.push
+            link  : label.url.replace('api.github.com/repos', 'github.com').replace('+', '%20')
+            color : '#' + label.color
+            name  : label.name
+
+        tempIssue =
+          labels  : issueLabels
+          author  :
+            name    : issue[if issue.assignee then 'assignee' else 'user'].login
+            link    : issue[if issue.assignee then 'assignee' else 'user'].html_url
+            pic     : issue[if issue.assignee then 'assignee' else 'user'].avatar_url
+          pull    :
+            number  : issue.number
+            open    : if issue.state is 'open' then true else false
+            name    : issue.title
+            link    : issue.html_url
+
+        queryPullByNumber issue.number, (queryPullData = {}) ->
+          issues.push _.extend tempIssue, queryPullData
+
+          if issues.length is data.length
+            # got all milestone data
+            queryMilestoneData.issues = issues
+            callback queryMilestoneData
+
+    else callback queryMilestoneData
+
+###
+query Github for pull request info by specifying the pull number
+###
+queryPullByNumber = (number, callback = ->) ->
+  queryPullData = {}
+
+  # query for a specific pull request
+  pull = github.pr githubRepo, number
+
+  pull.info (err, data, headers) ->
+    unless err
+      # do printLineBreak
+      # devLog data
+
+      queryPullData.branch =
+        name : data.head.ref
+        link : 'https://github.com/Thrillist/Pinnacle/tree/' + data.head.ref
+
+      queryPullData.pull =
+        number  : data.number
+        open    : if data.state is 'open' then true else false
+        merged  : if data.merged_at then true else false
+        name    : data.title
+        link    : data.html_url
+
+    callback queryPullData
 
 
 do init
