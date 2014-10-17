@@ -53,10 +53,6 @@ printLineBreak = ->
 init
 ###
 init = ->
-  # load express middleware
-  app.use express.bodyParser()
-  app.use express.cookieParser()
-
   # init server
   do initServer
 
