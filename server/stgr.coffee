@@ -179,8 +179,8 @@ queryServers = ->
         serverCount--;
 
       if _.keys(newResults).length is serverCount
-        do printLineBreak
-        devLog newResults
+        # do printLineBreak
+        # devLog newResults
 
         compareResults newResults
 
