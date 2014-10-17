@@ -1,5 +1,6 @@
 # credentials
 server/github_credentials.coffee
+server/leeroy_id_rsa.pem
 
 # Logs
 logs

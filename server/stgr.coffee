@@ -247,8 +247,8 @@ queryServer = (server, callback = ->) ->
     conn.connect
       host: server
       port: 22
-      username: 'ec2-user'
-      privateKey: file.readFileSync '/Users/bradmallow/Documents/keys/dops-dev.pem'
+      username: 'leeroy'
+      privateKey: file.readFileSync 'leeroy_id_rsa.pem'
 
   # initial server query
   do doQueryServer
