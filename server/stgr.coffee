@@ -229,7 +229,7 @@ queryServer = (server, callback = ->) ->
           data = data.toString('utf8').replace /\s/g, ''
 
           # remove
-          return false if data.length < 2 or /^\[|Nosuchfileordirectory/.test data
+          return false if data.length < 2
 
           # if the following command gets lumped in with the current line's output, cut it out
           data = data.split(/\[/)[0] if /\[/.test data
