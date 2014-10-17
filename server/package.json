@@ -1,11 +1,32 @@
 {
-  "name" : "stgrAPI",
-  "description" : "API server for stgr app",
-  "author" : "Brad Mallow <brad.mallow@gmail.com>",
-  "repository" : {
+  "name": "stgrAPI",
+  "description": "API server for stgr app",
+  "author": "Brad Mallow <brad.mallow@gmail.com>",
+  "repository": {
     "type": "git",
     "url": "git://github.com/briznadTMG/stgr.git"
   },
-  "main" : "stgr.coffee",
-  "version" : "0.0.1"
+  "main": "stgr.coffee",
+  "version": "0.0.1",
+  "bugs": {
+    "url": "https://github.com/briznadTMG/stgr/issues"
+  },
+  "homepage": "https://github.com/briznadTMG/stgr",
+  "dependencies": {
+    "coffee-script": "^1.8.0",
+    "github": "^0.2.2",
+    "octonode": "^0.6.6",
+    "ssh2": "^0.3.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "staging",
+    "branch",
+    "REST",
+    "API"
+  ],
+  "license": "MIT"
 }
