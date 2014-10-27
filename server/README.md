@@ -11,6 +11,6 @@ After checking out this project do the following to get stgrAPI up and running:
 
 1. run `npm install`
 
-1. run `forever -c coffee stgr.coffee`
+1. run `forever -w -c coffee stgr.coffee`, unless you'd like to run the API as a daemon. In that case run `forever start -c coffee stgr.coffee`.
 
 ### BOOM!!
