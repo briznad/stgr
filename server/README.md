@@ -1,7 +1,7 @@
 stgrAPI
 ====
 
-# Thrillist staging server RESTful endpoint
+## Thrillist staging server RESTful endpoint
 
 After checking out this project do the following to get stgrAPI up and running:
 
@@ -13,4 +13,4 @@ After checking out this project do the following to get stgrAPI up and running:
 
 1. run `forever -c coffee stgr.coffee`
 
-## BOOM!
+### BOOM!
