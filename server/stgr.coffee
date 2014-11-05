@@ -38,6 +38,11 @@ serverList    = [
   'stage04.thrillist.com'
   'stage01.supercompressor.com'
   'stage02.supercompressor.com'
+  'stage01.jackthreads.com'
+  'stage02.jackthreads.com'
+  'stage03.jackthreads.com'
+  'stage05.jackthreads.com'
+  'stage06.jackthreads.com'
 ]
 
 ###
