@@ -20,13 +20,13 @@ settings =
 app = do express
 
 github = GitHub.client
-    username: githubAuth.username
-    password: githubAuth.password
+  username: githubAuth.username
+  password: githubAuth.password
 
 githubRepo  = 'Thrillist/Pinnacle'
 pinnacle    = github.repo githubRepo
 
-queryIntervalInMinutes = 10
+queryIntervalInMinutes = 2
 queryInterval = 1000 * 60 * queryIntervalInMinutes
 serverResults = {}
 lastChange    = 0
@@ -121,6 +121,7 @@ routeHandlers =
     console.info 'request made for:\n' + req.url
 
     # respond!!
+    res.header 'Access-Control-Allow-Origin', '*'
     res.json stgrSays: 'Hello World!'
 
   test: (req, res) ->
@@ -136,7 +137,6 @@ routeHandlers =
     console.info 'request made for:\n' + req.url
 
     # respond!!
-    # res.header 'Access-Control-Allow-Origin', 'http://stgr.thrillist.com'
     res.header 'Access-Control-Allow-Origin', '*'
     res.json
       lastChange              : lastChange
@@ -177,9 +177,9 @@ queryServers = ->
   serverCount = serverList.length
 
   _.each serverList, (server) ->
-    queryServer server, (currentBranch) ->
-      if currentBranch
-        newResults[server] = currentBranch
+    queryServer server, (currentBranches) ->
+      if currentBranches
+        newResults[server] = currentBranches
       else
         serverCount--;
 
@@ -200,12 +200,14 @@ queryServer = (server, callback = ->) ->
   # test for forward or backward slashes, aka things that shouldn't be in a branch
   # if found, rerun branch check
   validateResponse = (response) ->
-    response = if response.length then response.pop().split('Pinnaclebranch:')[1].split('Contrabranch:')[0] else 'logout'
+    if response? and !/\\|\/|HEAD/.test response
+      callback
+        pinnacle  : response.split('Pinnaclebranch:')[1].split('Contrabranch:')[0]
+        contra    : response.split('Contrabranch:')[1]
 
-    unless /\\|\/|logout|HEAD/.test response
-      callback response
     else if connAttempts >= maxAttempts
       callback false
+
     else
       do printLineBreak
       console.info 'uh-oh, SSH branch check ' + connAttempts + ' of ' + maxAttempts + ' for server ' + server + ' returned bad data\ntrying again'
@@ -221,7 +223,7 @@ queryServer = (server, callback = ->) ->
       conn.shell 'echo "test"', (err, stream) ->
         throw err if err
 
-        output = []
+        output = null
 
         stream.stderr.on 'data', (data) ->
           console.error 'STDERR: ' + data
@@ -235,7 +237,7 @@ queryServer = (server, callback = ->) ->
           # if the following command gets lumped in with the current line's output, cut it out
           data = data.split(/\[/)[0] if /\[/.test data
 
-          output.push data if /Pinnaclebranch/.test data
+          output = data if /Pinnaclebranch/.test(data) and /Contrabranch/.test(data)
 
         stream.on 'close', ->
           do conn.end
@@ -266,7 +268,7 @@ compareResults = (newResults) ->
 
   # create an object with only changed servers/branches
   changedServers = _.omit newResults, (value, key, object) ->
-    return value is serverResults[key]
+    return _.isEqual value, serverResults[key]
 
   changedCount = _.keys(changedServers).length
 
@@ -274,7 +276,9 @@ compareResults = (newResults) ->
     console.log '\nnew branches!'
 
     lastChange    = Date.now()
-    serverResults = newResults
+
+    # ensure serverResults are sorted properly
+    serverResults = objSort newResults
 
     fetchMilestones (activeMilestones) ->
       addGithubData changedServers, changedCount, activeMilestones
@@ -314,13 +318,19 @@ addGithubData = (changedServers, changedCount, activeMilestones) ->
   changedServersData = {}
 
   _.each changedServers, (branch, server) ->
-    queryGithub server, branch, activeMilestones, (server, verboseData) ->
-      changedServersData[server] = verboseData
+    queryGithub server, branch.pinnacle, activeMilestones, (server, verboseData) ->
+      changedServersData[server] =
+        server    : server
+        property  : server.split('.')[1]
+        branches  :
+          contra    : branch.contra
+          pinnacle  : verboseData
 
       if _.keys(changedServersData).length is changedCount
         console.log '\nGithub querying complete!'
 
-        serverData = _.extend serverData, changedServersData
+        # extend serverData, sort, and save
+        serverData = objSort _.extend serverData, changedServersData
 
         # ALL DONE
         # do printLineBreak
@@ -332,8 +342,6 @@ handle the various Github queries and fire callback when all have come back
 ###
 queryGithub = (server, branch, activeMilestones, callback = ->) ->
   verboseData =
-    server      : server
-    property    : server.split('.')[1]
     last_commit : false
     milestone   : false
     author      : false
@@ -543,5 +551,15 @@ queryPullByNumber = (number, callback = ->) ->
 
     callback queryPullData
 
+###
+object sorter helper function
+###
+objSort = (obj) ->
+  tempObj = {}
+
+  _.each _.keys(obj).sort(), (value) ->
+    tempObj[value] = obj[value]
+
+  tempObj
 
 do init
