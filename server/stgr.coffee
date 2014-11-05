@@ -28,8 +28,8 @@ pinnacle    = github.repo githubRepo
 
 queryIntervalInMinutes = 2
 queryInterval = 1000 * 60 * queryIntervalInMinutes
-serverResults = {}
 lastChange    = 0
+serverResults = {}
 serverData    = {}
 serverList    = []
 propertyList  = [
