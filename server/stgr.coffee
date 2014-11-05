@@ -31,18 +31,12 @@ queryInterval = 1000 * 60 * queryIntervalInMinutes
 serverResults = {}
 lastChange    = 0
 serverData    = {}
-serverList    = [
-  'stage01.thrillist.com'
-  'stage02.thrillist.com'
-  'stage03.thrillist.com'
-  'stage04.thrillist.com'
-  'stage01.supercompressor.com'
-  'stage02.supercompressor.com'
-  'stage01.jackthreads.com'
-  'stage02.jackthreads.com'
-  'stage03.jackthreads.com'
-  'stage05.jackthreads.com'
-  'stage06.jackthreads.com'
+serverList    = []
+propertyList  = [
+  'thrillist'
+  'supercompressor'
+  'jackthreads'
+  'thrillistmediagroup'
 ]
 
 ###
@@ -61,8 +55,8 @@ init = ->
   # init server
   do initServer
 
-  # init query
-  do initQuery
+  # init server list, then init server query
+  initServerList initQuery
 
 ###
 init server
@@ -156,6 +150,59 @@ routeHandlers =
     res.header 'Access-Control-Allow-Origin', '*'
     res.json responseObj
 
+###
+set interval to check on available servers
+###
+initServerList = (callback = ->) ->
+  t = setInterval ->
+    do collateServers
+  , 21600000 # update server list every 6 hours
+
+  collateServers callback
+
+###
+create list of available servers
+###
+collateServers = (callback = ->) ->
+  console.info 'determining which staging servers are in play'
+
+  possibleServers = 100
+  returnedResults = 0
+  foundServers    = []
+
+  _.each propertyList, (property) ->
+    _.times possibleServers, (n) ->
+      n++
+
+      if n.toString().length is 1 then n = '0' + n
+
+      pingServer 'stage' + n + '.' + property + '.com', (validServer) ->
+        returnedResults++
+
+        foundServers.push validServer if validServer
+
+        if returnedResults is possibleServers * propertyList.length
+          serverList = foundServers
+
+          do callback
+
+###
+check for ssh access to server
+###
+pingServer = (server, callback) ->
+  conn = new SSH()
+
+  conn.on 'ready', ->
+    callback server
+
+  conn.on 'error', (error) ->
+    callback false
+
+  conn.connect
+    host: server
+    port: 22
+    username: 'leeroy'
+    privateKey: file.readFileSync 'leeroy_id_rsa.pem'
 
 ###
 init query
