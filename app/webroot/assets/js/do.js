@@ -12312,10 +12312,14 @@ stgr.refreshData = (function() {
     request = $.ajax({
       url: 'http://' + window.location.hostname + ':7847/lastChange'
     });
-    return request.done(function(data) {
+    request.done(function(data) {
       if (data.lastChange !== stgr.model.settings.lastChange) {
         return stgr.modelBuildr.getData(stgr.updateView.update);
       }
+    });
+    return request.fail(function() {
+      var t;
+      return t = setTimeout(_updateCheck, 30000);
     });
   };
   return {

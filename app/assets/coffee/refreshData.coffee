@@ -23,4 +23,8 @@ stgr.refreshData = do ->
       if data.lastChange isnt stgr.model.settings.lastChange
         stgr.modelBuildr.getData stgr.updateView.update
 
+    request.fail ->
+      # try again in 30 secs
+      t = setTimeout _updateCheck, 30000
+
   init: init
