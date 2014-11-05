@@ -6,12 +6,18 @@ stgr.modelBuildr = (function() {
   'use strict';
   var getData, init, _collateProperties;
   init = function(callback) {
+    if (callback == null) {
+      callback = function() {};
+    }
     return getData(callback);
   };
   getData = function(callback) {
     var request;
+    if (callback == null) {
+      callback = function() {};
+    }
     request = $.ajax({
-      url: 'http://stgr.thrillist.com:7847/list?verbose=true'
+      url: 'http://' + window.location.hostname + ':7847/list?verbose=true'
     });
     request.done(function(data) {
       stgr.model = {
@@ -42,6 +48,7 @@ stgr.modelBuildr = (function() {
     return propertyObj;
   };
   return {
-    init: init
+    init: init,
+    getData: getData
   };
 })();

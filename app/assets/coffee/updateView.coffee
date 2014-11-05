@@ -6,7 +6,7 @@ stgr.updateView = do ->
   beforeUpdate = (request) ->
     # false if /jpg$|jpeg$|png$|gif$|bmp$/.test request.path
 
-  update = (type) ->
+  update = (type = 'root') ->
     # determine the current page object
     currentPage = stgr.model[type]
 
@@ -62,6 +62,6 @@ stgr.updateView = do ->
 
       $(this).toggleClass('expanded') unless $(e.target).is('a')
 
-  beforeUpdate: beforeUpdate
-  update:       update
-  trackGA:      trackGA
+  beforeUpdate  : beforeUpdate
+  update        : update
+  trackGA       : trackGA

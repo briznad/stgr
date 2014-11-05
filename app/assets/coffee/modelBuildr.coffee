@@ -3,13 +3,13 @@ stgr = stgr or {}
 stgr.modelBuildr = do ->
   'use strict'
 
-  init = (callback) ->
+  init = (callback = ->) ->
     getData callback
 
-  getData = (callback) ->
+  getData = (callback = ->) ->
     # requesting data from API
     request = $.ajax
-      url:    'http://stgr.thrillist.com:7847/list?verbose=true'
+      url:    'http://' + window.location.hostname + ':7847/list?verbose=true'
 
     # here's the data
     request.done (data) ->
@@ -39,4 +39,5 @@ stgr.modelBuildr = do ->
 
     propertyObj
 
-  init: init
+  init    : init
+  getData : getData

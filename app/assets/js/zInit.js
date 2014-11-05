@@ -6,7 +6,8 @@ stgr.init = (function() {
   'use strict';
   return stgr.template.init(function() {
     return stgr.modelBuildr.init(function() {
-      return stgr.router.init();
+      stgr.router.init();
+      return stgr.refreshData.init();
     });
   });
 })();

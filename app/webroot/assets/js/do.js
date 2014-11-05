@@ -12244,12 +12244,18 @@ stgr.modelBuildr = (function() {
   'use strict';
   var getData, init, _collateProperties;
   init = function(callback) {
+    if (callback == null) {
+      callback = function() {};
+    }
     return getData(callback);
   };
   getData = function(callback) {
     var request;
+    if (callback == null) {
+      callback = function() {};
+    }
     request = $.ajax({
-      url: 'http://stgr.thrillist.com:7847/list?verbose=true'
+      url: 'http://' + window.location.hostname + ':7847/list?verbose=true'
     });
     request.done(function(data) {
       stgr.model = {
@@ -12278,6 +12284,39 @@ stgr.modelBuildr = (function() {
       return propertyObj[serverData.property].push(server);
     });
     return propertyObj;
+  };
+  return {
+    init: init,
+    getData: getData
+  };
+})();
+;var stgr;
+
+stgr = stgr || {};
+
+stgr.refreshData = (function() {
+  'use strict';
+  var init, _updateCheck;
+  init = function(opts) {
+    var interval, options;
+    if (opts == null) {
+      opts = {};
+    }
+    options = _.extend({
+      intervalInMinutes: 2
+    }, opts);
+    return interval = setInterval(_updateCheck, options.intervalInMinutes * 1000 * 60);
+  };
+  _updateCheck = function() {
+    var request;
+    request = $.ajax({
+      url: 'http://' + window.location.hostname + ':7847/lastChange'
+    });
+    return request.done(function(data) {
+      if (data.lastChange !== stgr.model.settings.lastChange) {
+        return stgr.modelBuildr.getData(stgr.updateView.update);
+      }
+    });
   };
   return {
     init: init
@@ -12365,6 +12404,9 @@ stgr.updateView = (function() {
   beforeUpdate = function(request) {};
   update = function(type) {
     var currentPage;
+    if (type == null) {
+      type = 'root';
+    }
     currentPage = stgr.model[type];
     _removeBodyClasses();
     _updateBodyClasses('addClass', [type]);
@@ -12432,7 +12474,8 @@ stgr.init = (function() {
   'use strict';
   return stgr.template.init(function() {
     return stgr.modelBuildr.init(function() {
-      return stgr.router.init();
+      stgr.router.init();
+      return stgr.refreshData.init();
     });
   });
 })();

@@ -9,3 +9,6 @@ stgr.init = do ->
     stgr.modelBuildr.init ->
       # load router controller
       do stgr.router.init
+
+      # initialize update check
+      do stgr.refreshData.init

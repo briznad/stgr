@@ -8,6 +8,9 @@ stgr.updateView = (function() {
   beforeUpdate = function(request) {};
   update = function(type) {
     var currentPage;
+    if (type == null) {
+      type = 'root';
+    }
     currentPage = stgr.model[type];
     _removeBodyClasses();
     _updateBodyClasses('addClass', [type]);
