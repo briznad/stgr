@@ -307,6 +307,12 @@ table {
   border-collapse: collapse;
   border-spacing: 0; }
 
+@font-face {
+  font-family: 'IceCaps';
+  src: url('/assets/fonts/IceCaps.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal; }
+
 /* settings */
 /* /settings */
 .social-link:before {
@@ -426,59 +432,10 @@ li {
   height: auto; }
 
 /* /general page styles */
-.top-row {
-  position: relative;
-  text-align: center; }
-  .top-row .logo {
-    display: inline-block;
-    margin: 0 auto; }
-    .top-row .logo img {
-      width: 240px;
-      height: 35px; }
-
-.top-nav-list {
-  text-transform: lowercase; }
-
-.top-nav-list-item {
-  position: absolute;
-  top: 20px; }
-  .top-nav-list-item.page, .top-nav-list-item.collaborators-dropdown, .top-nav-list-item.where {
-    text-align: right; }
-  .top-nav-list-item.shop {
-    left: 0; }
-  .top-nav-list-item.page {
-    right: 63.25%; }
-  .top-nav-list-item.current-edition {
-    left: 63.25%; }
-  .top-nav-list-item.collaborators-dropdown, .top-nav-list-item.where {
-    right: 0; }
-
-.collaborators-dropdown {
-  width: 20%; }
-  .collaborators-dropdown .dropdown-trigger {
-    display: inline-block;
-    padding-bottom: 0.333em; }
-    .collaborators-dropdown .dropdown-trigger:hover, .collaborators-dropdown .dropdown-trigger:focus {
-      text-decoration: none; }
-      .collaborators-dropdown .dropdown-trigger:hover ~ .dropdown, .collaborators-dropdown .dropdown-trigger:focus ~ .dropdown {
-        display: block; }
-  .collaborators-dropdown .dropdown {
-    position: absolute;
-    display: none; }
-    .collaborators-dropdown .dropdown:hover, .collaborators-dropdown .dropdown:focus {
-      display: block; }
-
-.collaborators-list {
-  padding: 0.5em;
-  right: -0.5em;
-  text-align: right;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid #000; }
-
-.collaborators-list-item {
-  margin-top: 0.25em; }
-  .collaborators-list-item:first-child {
-    margin-top: 0; }
+.header {
+  font-size: 2.2em;
+  font-family: 'IceCaps';
+  color: #79a9e0; }
 
 .bottom-row {
   font-size: 0.78571em; }
