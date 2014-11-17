@@ -29,8 +29,9 @@ pinnacle    = github.repo githubRepo
 queryIntervalInMinutes = 2
 queryInterval = 1000 * 60 * queryIntervalInMinutes
 lastChange    = 0
-serverResults = {}
-serverData    = {}
+data          =
+  serverResults : {}
+  serverData    : {}
 serverList    = []
 propertyList  = [
   'thrillist'
@@ -83,14 +84,35 @@ initServer = ->
   console.log '\n\n                  ####################\n                   s t g r  -  A P I\n                  ####################\n'
 
 ###
-load routes
+init routes
 ###
-routes =
+initRoutes = ->
+  _.each apiResources, (methodRoutes, method) ->
+    _.each methodRoutes, (route, routeFunction) ->
+      app[method] route, routeHandlers[routeFunction]
+
+###
+define routes
+###
+apiResources =
   'get' :
-    '/'             : 'root'
-    '/test'         : 'test'
-    '/lastChange'   : 'lastChange'
-    '/list'         : 'list'
+    'root'        : [
+      '/'
+      '/api/v2/'
+    ]
+    'test'        : [
+      '/test'
+      '/api/v2/test'
+    ]
+    'lastChange'  : [
+      '/lastChange'
+      '/api/v2/lastChange'
+    ]
+    'list'        : [
+      '/list'
+      '/api/v2/servers'
+      '/api/v2/servers/:server'
+    ]
 
   # 'put' :
   #   '/update' : 'updateRequest'
@@ -98,16 +120,7 @@ routes =
   #   '/create' : 'createRequest'
 
 ###
-init routes
-###
-initRoutes = ->
-  _.each routes, (value, key) ->
-    verb = key
-    _.each value, (value, key) ->
-      app[verb] key, routeHandlers[value]
-
-###
-register route handlers
+define route handlers
 ###
 routeHandlers =
   root: (req, res) ->
@@ -140,12 +153,13 @@ routeHandlers =
     console.log '\nOMG, a request!'
     console.info 'request made for:\n' + req.url
 
+    # if verbose query param is set, send detailed list
+    useList = unless /^$|true/.test req.query.verbose then 'serverResults' else 'serverData'
+
     responseObj =
       lastChange              : lastChange
       queryIntervalInMinutes  : queryIntervalInMinutes
-
-    # if verbose query param is set, send detailed list
-    responseObj.data =  unless /^$|true/.test req.query.verbose then serverResults else serverData
+      data                    : if req.params.server then data[useList][req.params.server] else data[useList]
 
     res.header 'Access-Control-Allow-Origin', '*'
     res.json responseObj
@@ -315,7 +329,7 @@ compareResults = (newResults) ->
 
   # create an object with only changed servers/branches
   changedServers = _.omit newResults, (value, key, object) ->
-    return _.isEqual value, serverResults[key]
+    return _.isEqual value, data.serverResults[key]
 
   changedCount = _.keys(changedServers).length
 
@@ -325,7 +339,7 @@ compareResults = (newResults) ->
     lastChange    = Date.now()
 
     # ensure serverResults are sorted properly
-    serverResults = objSort newResults
+    data.serverResults = objSort newResults
 
     fetchMilestones (activeMilestones) ->
       addGithubData changedServers, changedCount, activeMilestones
@@ -352,7 +366,7 @@ fetchMilestones = (callback = ->) ->
       # devLog data
 
       _.each data, (milestone) ->
-        if _.invert(serverResults)[milestone.title]
+        if _.invert(data.serverResults)[milestone.title]
           activeMilestones[milestone.title] = milestone.number
 
     callback activeMilestones
@@ -377,12 +391,12 @@ addGithubData = (changedServers, changedCount, activeMilestones) ->
         console.log '\nGithub querying complete!'
 
         # extend serverData, sort, and save
-        serverData = objSort _.extend serverData, changedServersData
+        data.serverData = objSort _.extend data.serverData, changedServersData
 
         # ALL DONE
         # do printLineBreak
         # devLog changedServersData
-        # devLog serverData
+        # devLog data.serverData
 
 ###
 handle the various Github queries and fire callback when all have come back
@@ -609,4 +623,7 @@ objSort = (obj) ->
 
   tempObj
 
+###
+LETS DO THIS THING!
+###
 do init
